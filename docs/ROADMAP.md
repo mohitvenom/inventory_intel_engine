@@ -2,7 +2,7 @@
 
 - [x] **Phase 1**: Project scaffolding and environment
 - [x] **Phase 2**: Database setup and models
-- [ ] **Phase 3**: Scraping tool development
+- [x] **Phase 3**: Scraping tool development
 - [ ] **Phase 4**: MCP server implementation
 - [ ] **Phase 5**: Agent orchestration (LangGraph + OpenAI)
 - [ ] **Phase 6**: Core logic implementation

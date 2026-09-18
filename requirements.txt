@@ -8,9 +8,9 @@ alembic              # phase 2
 psycopg2-binary      # phase 2
 
 # Phase 3: Scraping
-# requests             # phase 3
-# beautifulsoup4       # phase 3
-# cloudscraper         # phase 3
+requests             # phase 3
+beautifulsoup4       # phase 3
+cloudscraper         # phase 3
 
 # Phase 4: MCP Server
 # mcp                  # phase 4
