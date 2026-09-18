@@ -11,18 +11,22 @@ def seed_data():
     # 5 Sample Products
     products = [
         Product(
+            name="EVGA GeForce RTX 3090",
             source=SourceEnum.amazon,
-            external_id="B08N5WRWNW",
-            name="Apple Mac Mini with Apple M1 Chip",
-            currency="USD",
-            price_drop_threshold_pct=5.0,
+            external_id="B08J5F3G18",
+            is_active=True
         ),
         Product(
+            name="LG 27UK850-W 27\" 4K UHD IPS Monitor",
             source=SourceEnum.amazon,
-            external_id="B09G9FPHY6",
-            name="Apple iPhone 13 Pro (128GB)",
-            currency="USD",
-            price_drop_threshold_pct=10.0,
+            external_id="B078GRRVVW",
+            is_active=True
+        ),
+        Product(
+            name="Birthday Gifts for Women Spa Package",
+            source=SourceEnum.ubuy,
+            external_id="https://www.ubuy.hk/en/product/MJKMFA9O6-birthday-gifts-for-women-get-well-gifts-for-women-relaxing-spa-gifts-care-package-with-luxury-flannel-blanket-light-up-rose-flower-unique-self",
+            is_active=True
         ),
         Product(
             source=SourceEnum.ubuy,

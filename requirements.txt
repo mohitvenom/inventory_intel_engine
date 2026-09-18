@@ -13,7 +13,7 @@ beautifulsoup4       # phase 3
 cloudscraper         # phase 3
 
 # Phase 4: MCP Server
-# mcp                  # phase 4
+mcp                  # phase 4
 
 # Phase 5: Agent Orchestrator
 # langgraph            # phase 5

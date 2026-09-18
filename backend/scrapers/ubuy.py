@@ -14,8 +14,7 @@ def check_ubuy_stock(product_url: str, region: str) -> ScrapeResult:
     soup = BeautifulSoup(html, "html.parser")
     
     # 1. Title
-    # Ubuy titles are often in an h1 or h2 with class product-title
-    title_element = soup.find("h1", class_=lambda c: c and "product-title" in c)
+    title_element = soup.find("h1", class_=lambda c: c and ("product-title" in c or "description" in c))
     if not title_element:
         title_element = soup.find("h2", class_=lambda c: c and "title" in c)
         
