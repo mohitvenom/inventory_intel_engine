@@ -1,7 +1,7 @@
 # Inventory Intel Agent - Project Roadmap
 
 - [x] **Phase 1**: Project scaffolding and environment
-- [ ] **Phase 2**: Database setup and models
+- [x] **Phase 2**: Database setup and models
 - [ ] **Phase 3**: Scraping tool development
 - [ ] **Phase 4**: MCP server implementation
 - [ ] **Phase 5**: Agent orchestration (LangGraph + OpenAI)

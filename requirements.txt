@@ -3,9 +3,9 @@ uvicorn[standard]    # phase 1
 python-dotenv        # phase 1
 pydantic             # phase 1
 # Phase 2: Database
-# sqlalchemy>=2.0      # phase 2
-# alembic              # phase 2
-# psycopg2-binary      # phase 2
+sqlalchemy>=2.0      # phase 2
+alembic              # phase 2
+psycopg2-binary      # phase 2
 
 # Phase 3: Scraping
 # requests             # phase 3
