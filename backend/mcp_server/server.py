@@ -200,3 +200,5 @@ def record_stock_check(product_id: int, in_stock: bool) -> dict:
         return {"status": "error", "message": str(e)}
     finally:
         db.close()
+if __name__ == '__main__':
+    mcp.run()
