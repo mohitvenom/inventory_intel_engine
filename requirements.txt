@@ -1,0 +1,23 @@
+fastapi              # phase 1
+uvicorn[standard]    # phase 1
+python-dotenv        # phase 1
+pydantic             # phase 1
+# Phase 2: Database
+# sqlalchemy>=2.0      # phase 2
+# alembic              # phase 2
+# psycopg2-binary      # phase 2
+
+# Phase 3: Scraping
+# requests             # phase 3
+# beautifulsoup4       # phase 3
+# cloudscraper         # phase 3
+
+# Phase 4: MCP Server
+# mcp                  # phase 4
+
+# Phase 5: Agent Orchestrator
+# langgraph            # phase 5
+# openai               # phase 5
+
+# Phase 7: Recurring Runs
+# apscheduler          # phase 7
