@@ -21,6 +21,7 @@ class ChannelEnum(str, enum.Enum):
 class RunStatusEnum(str, enum.Enum):
     running = 'running'
     success = 'success'
+    partial_failure = 'partial_failure'
     failed = 'failed'
 
 class Product(Base):

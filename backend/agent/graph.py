@@ -29,9 +29,10 @@ def parse_mcp_result(res):
                     parsed = json.loads(item)
                 elif isinstance(item, dict) and "text" in item:
                     parsed = json.loads(item["text"])
+                if isinstance(parsed, list):
+                    parsed_items.extend(parsed)
                 else:
-                    parsed = item
-                parsed_items.append(parsed)
+                    parsed_items.append(parsed)
             except Exception:
                 pass
         return parsed_items
@@ -46,6 +47,8 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
         start_tool = tools_dict["start_agent_run"]
         res = await start_tool.ainvoke({})
         data = parse_mcp_result(res)
+        if isinstance(data, list) and len(data) > 0:
+            data = data[0]
         return {"run_id": data.get("run_id")}
 
     async def fetch_watchlist(state: AgentState):
@@ -176,10 +179,15 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
         results = state.get("product_results", [])
         summary = state.get("summary", "")
         
-        has_error = any(r.get("status") == "error" for r in results)
-        run_status = "failed" if has_error else "success" # Basic logic: if any fail, mark as success but trace has errors, or maybe just success if the run finished
-        # Let's say success if we finished, we can just use "success" and let trace hold errors
-        run_status = "success"
+        error_count = sum(1 for r in results if r.get("status") == "error")
+        success_count = len(results) - error_count
+        
+        if success_count == len(results) and len(results) > 0:
+            run_status = "success"
+        elif error_count == len(results) and len(results) > 0:
+            run_status = "failed"
+        else:
+            run_status = "partial_failure"
         
         trace = {
             "summary": summary,
