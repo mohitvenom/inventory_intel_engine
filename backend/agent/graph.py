@@ -43,14 +43,6 @@ def parse_mcp_result(res):
 def create_inventory_graph(tools_dict: Dict[str, Any]):
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
     
-    async def start_run(state: AgentState):
-        start_tool = tools_dict["start_agent_run"]
-        res = await start_tool.ainvoke({})
-        data = parse_mcp_result(res)
-        if isinstance(data, list) and len(data) > 0:
-            data = data[0]
-        return {"run_id": data.get("run_id")}
-
     async def fetch_watchlist(state: AgentState):
         list_tool = tools_dict["list_watchlist"]
         res = await list_tool.ainvoke({"active_only": True})
@@ -255,15 +247,13 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
 
     workflow = StateGraph(AgentState)
     
-    workflow.add_node("start_run", start_run)
     workflow.add_node("fetch_watchlist", fetch_watchlist)
     workflow.add_node("check_and_record", check_and_record)
     workflow.add_node("send_alerts", send_alerts)
     workflow.add_node("summarize_run", summarize_run)
     workflow.add_node("finish_run", finish_run)
     
-    workflow.add_edge(START, "start_run")
-    workflow.add_edge("start_run", "fetch_watchlist")
+    workflow.add_edge(START, "fetch_watchlist")
     workflow.add_conditional_edges("fetch_watchlist", map_products, ["check_and_record"])
     workflow.add_edge("check_and_record", "send_alerts")
     workflow.add_edge("send_alerts", "summarize_run")

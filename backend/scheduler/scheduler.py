@@ -44,31 +44,32 @@ async def job_wrapper():
         
     start_time = datetime.now(timezone.utc)
         
+    run_ctx = {}
     try:
         logger.info("No overlapping jobs found. Proceeding with agent run.")
-        await async_run_agent()
+        await async_run_agent(run_ctx)
         logger.info("Agent run finished successfully.")
     except Exception as e:
         logger.error(f"Top-level resilience: Unhandled exception in agent run: {e}")
         logger.error(traceback.format_exc())
         
-        # Mark ONLY the run this invocation owns (the one started after we began)
-        db = SessionLocal()
-        try:
-            my_job = db.query(AgentRun).filter(
-                AgentRun.status == RunStatusEnum.running,
-                AgentRun.started_at >= start_time
-            ).order_by(AgentRun.id.desc()).first()
-            
-            if my_job:
-                my_job.status = RunStatusEnum.failed
-                my_job.error = "Failed due to unhandled exception in scheduler job wrapper"
-                my_job.finished_at = datetime.now(timezone.utc)
-                db.commit()
-                logger.info(f"Marked our crashed job ({my_job.id}) as failed.")
-            else:
-                logger.info("No running job found owned by this invocation to clean up.")
-        except Exception as db_e:
-            logger.error(f"Failed to update DB for our crashed job: {db_e}")
-        finally:
-            db.close()
+        # Mark ONLY the run this invocation owns (the exact run_id we captured)
+        run_id = run_ctx.get("run_id")
+        if run_id:
+            db = SessionLocal()
+            try:
+                my_job = db.query(AgentRun).filter(AgentRun.id == run_id).first()
+                if my_job and my_job.status == RunStatusEnum.running:
+                    my_job.status = RunStatusEnum.failed
+                    my_job.error = "Failed due to unhandled exception in scheduler job wrapper"
+                    my_job.finished_at = datetime.now(timezone.utc)
+                    db.commit()
+                    logger.info(f"Marked our crashed job (run_id={run_id}) as failed.")
+                else:
+                    logger.info(f"Job (run_id={run_id}) is not in running state or not found.")
+            except Exception as db_e:
+                logger.error(f"Failed to update DB for our crashed job: {db_e}")
+            finally:
+                db.close()
+        else:
+            logger.info("No run_id was captured; nothing to clean up.")
