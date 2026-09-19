@@ -174,6 +174,54 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
         
         return {"summary": response.content}
 
+    async def send_alerts(state: AgentState):
+        from backend.alerting.slack import send_slack_alert
+        results = state.get("product_results", [])
+        print(f"DEBUG: Entering send_alerts with {len(results)} results")
+        
+        for r in results:
+            if r.get("status") == "error":
+                continue
+                
+            alert_types = []
+            if r.get("price_dropped"):
+                alert_types.append("price_drop")
+            if r.get("restocked"):
+                alert_types.append("restock")
+            if r.get("stockouted"):
+                alert_types.append("stockout")
+                
+            for at in alert_types:
+                # Check dedupe
+                try:
+                    recent = await tools_dict["get_recent_alerts"].ainvoke({
+                        "product_id": r["id"],
+                        "alert_type": at,
+                        "since_hours": 6
+                    })
+                    recent = parse_mcp_result(recent)
+                    if recent and len(recent) > 0:
+                        print(f"Skipping {at} alert for {r['name']} (dedupe: sent {len(recent)} times in last 6h)")
+                        continue
+                        
+                    # Format message
+                    msg = f"*{at}* Alert for {r['name']}!\nSource: {r['source']}\nPrice: {r.get('price')}\nIn Stock: {r.get('in_stock')}"
+                    
+                    # Send alert
+                    res = send_slack_alert(msg)
+                    if res and res.get("status") == "success":
+                        # Record alert
+                        await tools_dict["record_alert_sent"].ainvoke({
+                            "product_id": r["id"],
+                            "alert_type": at,
+                            "message": msg,
+                            "channel": "slack"
+                        })
+                except Exception as e:
+                    print(f"Error processing alert {at} for {r['name']}: {e}")
+                    
+        return {}
+
     async def finish_run(state: AgentState):
         run_id = state.get("run_id")
         results = state.get("product_results", [])
@@ -209,13 +257,15 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
     workflow.add_node("start_run", start_run)
     workflow.add_node("fetch_watchlist", fetch_watchlist)
     workflow.add_node("check_and_record", check_and_record)
+    workflow.add_node("send_alerts", send_alerts)
     workflow.add_node("summarize_run", summarize_run)
     workflow.add_node("finish_run", finish_run)
     
     workflow.add_edge(START, "start_run")
     workflow.add_edge("start_run", "fetch_watchlist")
     workflow.add_conditional_edges("fetch_watchlist", map_products, ["check_and_record"])
-    workflow.add_edge("check_and_record", "summarize_run")
+    workflow.add_edge("check_and_record", "send_alerts")
+    workflow.add_edge("send_alerts", "summarize_run")
     workflow.add_edge("summarize_run", "finish_run")
     workflow.add_edge("finish_run", END)
     

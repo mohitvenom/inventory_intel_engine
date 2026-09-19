@@ -1,12 +1,12 @@
 # Inventory Intel Agent - Project Roadmap
 
-- [x] **Phase 1**: Project Scaffolding (FastAPI skeleton, docker-compose, basic docs)
-- [x] **Phase 2**: Database schema, migrations, and seed data
-- [x] **Phase 3**: Scraper pure functions (Amazon & Ubuy) with test fixtures
-- [x] **Phase 4**: MCP Tool Server wrapper for scrapers and DB access
-- [x] **Phase 5**: Agent Orchestration (LangGraph + OpenAI)
-- [ ] **Phase 6**: Core logic implementation
-- [ ] **Phase 7**: Scheduler setup
-- [ ] **Phase 8**: Dashboard frontend (Next.js)
-- [ ] **Phase 9**: Alert engine setup
-- [ ] **Phase 10**: Final polish and deployment
+- [x] **Phase 1**: Initial scaffolding (FastAPI, Docker, config).
+- [x] **Phase 2**: Database setup (PostgreSQL, models, Alembic, seeding).
+- [x] **Phase 3**: Core scrapers (Pure python functions for Amazon/Ubuy).
+- [x] **Phase 4**: MCP Server (Expose scrapers and DB access as MCP tools).
+- [x] **Phase 5**: LangGraph Agent (Orchestrator to run checks and summarize).
+- [x] **Phase 6**: Alerting Engine (Slack webhooks, dedupe logic, `alerts_sent` tracking).
+- [ ] **Phase 7**: Scheduler (Cron job/APScheduler to run agent periodically).
+- [ ] **Phase 8**: Next.js Dashboard Backend (FastAPI endpoints for the UI).
+- [ ] **Phase 9**: Next.js Dashboard Frontend (React components, charts).
+- [ ] **Phase 10**: Email Alerts (SMTP integration, replacing/augmenting Slack).

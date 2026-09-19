@@ -11,7 +11,7 @@ from backend.scrapers.amazon import check_amazon_price as scrape_amazon
 from backend.scrapers.ubuy import check_ubuy_stock as scrape_ubuy
 from backend.scrapers.types import ScrapeError
 from backend.db.session import SessionLocal
-from backend.db.models import Product, PriceHistory, StockHistory, AgentRun, RunStatusEnum
+from backend.db.models import Product, PriceHistory, StockHistory, AgentRun, RunStatusEnum, AlertSent, AlertTypeEnum
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
@@ -199,6 +199,64 @@ def record_stock_check(product_id: int, in_stock: bool) -> dict:
     except Exception as e:
         db.rollback()
         return {"status": "error", "message": str(e)}
+    finally:
+        db.close()
+
+@mcp.tool()
+def record_alert_sent(product_id: int, alert_type: str, message: str, channel: str) -> dict:
+    """
+    Records an alert that was sent in the database.
+    """
+    db = SessionLocal()
+    try:
+        record = AlertSent(
+            product_id=product_id,
+            alert_type=AlertTypeEnum[alert_type],
+            message=message,
+            channel=channel
+        )
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+        return {
+            "status": "success",
+            "id": record.id,
+            "product_id": record.product_id,
+            "alert_type": record.alert_type.value,
+            "sent_at": record.sent_at.isoformat()
+        }
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
+    finally:
+        db.close()
+
+@mcp.tool()
+def get_recent_alerts(product_id: int, alert_type: str, since_hours: int = 6) -> list[dict]:
+    """
+    Gets recent alerts sent for a given product and alert type within the last since_hours hours.
+    """
+    from datetime import timedelta
+    db = SessionLocal()
+    try:
+        since_time = datetime.now(timezone.utc) - timedelta(hours=since_hours)
+        alerts = db.query(AlertSent).filter(
+            AlertSent.product_id == product_id,
+            AlertSent.alert_type == AlertTypeEnum[alert_type],
+            AlertSent.sent_at >= since_time
+        ).order_by(AlertSent.sent_at.desc()).all()
+        
+        return [
+            {
+                "id": a.id,
+                "product_id": a.product_id,
+                "alert_type": a.alert_type.value,
+                "message": a.message,
+                "channel": a.channel,
+                "sent_at": a.sent_at.isoformat()
+            }
+            for a in alerts
+        ]
     finally:
         db.close()
 
