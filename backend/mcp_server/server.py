@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 from typing import List, Dict, Any, Optional
-from mcp.server.mcpserver import MCPServer
+from mcp.server.fastmcp import FastMCP
 
 # Ensure we can import backend packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -11,12 +11,13 @@ from backend.scrapers.amazon import check_amazon_price as scrape_amazon
 from backend.scrapers.ubuy import check_ubuy_stock as scrape_ubuy
 from backend.scrapers.types import ScrapeError
 from backend.db.session import SessionLocal
-from backend.db.models import Product, PriceHistory, StockHistory
+from backend.db.models import Product, PriceHistory, StockHistory, AgentRun, RunStatusEnum
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
 # Create the MCP server instance
-mcp = MCPServer("inventory-intel-agent")
+mcp = FastMCP("inventory-intel-agent")
 
 @mcp.tool()
 def check_amazon_price(asin: str) -> dict:
@@ -200,5 +201,34 @@ def record_stock_check(product_id: int, in_stock: bool) -> dict:
         return {"status": "error", "message": str(e)}
     finally:
         db.close()
+
+@mcp.tool()
+def start_agent_run() -> dict:
+    db = SessionLocal()
+    try:
+        run = AgentRun(status=RunStatusEnum.running)
+        db.add(run)
+        db.commit()
+        db.refresh(run)
+        return {'run_id': run.id}
+    finally:
+        db.close()
+
+@mcp.tool()
+def finish_agent_run(run_id: int, status: str, products_checked: int, trace: dict, error: str | None = None) -> dict:
+    db = SessionLocal()
+    try:
+        run = db.query(AgentRun).get(run_id)
+        if run:
+            run.status = RunStatusEnum[status]
+            run.products_checked = products_checked
+            run.trace = trace
+            run.error = error
+            run.finished_at = datetime.now(timezone.utc)
+            db.commit()
+        return {'status': 'success'}
+    finally:
+        db.close()
+
 if __name__ == '__main__':
     mcp.run()
