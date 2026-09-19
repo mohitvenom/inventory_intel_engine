@@ -29,3 +29,7 @@ graph TD
 - **LangGraph**: Used `langgraph` v1.2.11 for orchestration and mapping patterns (`Send`).
 - **MCP Adapter**: Used `langchain-mcp-adapters` v0.3.2 to abstract stdio server parameters and bridge FastMCP's raw outputs into standard dicts via a custom `parse_mcp_result` hook.
 - **LLM Summary Call**: Located in `summarize_run` node. Invoked once per agent run (to minimize tokens and API calls), acting strictly to build summaries over known data traces, leaving tools orchestration to deterministic code since the logic is deterministic.
+
+### Known Trade-offs
+
+- **MCP SDK v1.x vs v2**: In Phase 4b, the server was built and verified using the official MCP SDK v2 (i.e. `MCPServer`). However, as of this build, `langchain-mcp-adapters` pins the requirement to `mcp<2.0.0`. To allow the LangGraph integration to work in Phase 5, the server was downgraded and reverted to using `FastMCP` (SDK v1.x). The exact import line in `backend/mcp_server/server.py` is currently: `from mcp.server.fastmcp import FastMCP`. This trade-off should be revisited and upgraded once the adapter library supports SDK v2.

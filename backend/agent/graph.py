@@ -34,9 +34,6 @@ def parse_mcp_result(res):
                 parsed_items.append(parsed)
             except Exception:
                 pass
-        if len(parsed_items) == 1 and isinstance(parsed_items[0], dict):
-            # If the tool just returned one dict in one block (e.g. check_amazon_price)
-            return parsed_items[0]
         return parsed_items
     elif isinstance(res, dict) and "result" in res:
         return res["result"]
@@ -89,6 +86,10 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
             
             # parse check_res
             check_res = parse_mcp_result(check_res)
+            if isinstance(check_res, list) and len(check_res) > 0:
+                check_res = check_res[0]
+            elif isinstance(check_res, list):
+                check_res = {"status": "error", "message": "Empty response"}
             
             if check_res.get("status") == "error":
                 result_trace["status"] = "error"
@@ -159,6 +160,15 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
         )
         
         response = await llm.ainvoke([SystemMessage(content="You are a helpful assistant."), HumanMessage(content=prompt)])
+        
+        print(f"\n--- REAL OPENAI API CALL VERIFICATION ---")
+        print(f"Model used: {response.response_metadata.get('model_name', 'Unknown')}")
+        print(f"Response ID: {response.response_metadata.get('system_fingerprint', 'Unknown')}")
+        token_usage = response.response_metadata.get('token_usage', {})
+        print(f"Token usage: Prompt: {token_usage.get('prompt_tokens')} / Completion: {token_usage.get('completion_tokens')} / Total: {token_usage.get('total_tokens')}")
+        print(f"Summary text: {response.content}")
+        print(f"-----------------------------------------\n")
+        
         return {"summary": response.content}
 
     async def finish_run(state: AgentState):
