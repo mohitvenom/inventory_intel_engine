@@ -20,4 +20,4 @@ mcp                  # phase 4
 # openai               # phase 5
 
 # Phase 7: Recurring Runs
-# apscheduler          # phase 7
+apscheduler          # phase 7

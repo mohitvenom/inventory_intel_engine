@@ -6,7 +6,7 @@
 - [x] **Phase 4**: MCP Server (Expose scrapers and DB access as MCP tools).
 - [x] **Phase 5**: LangGraph Agent (Orchestrator to run checks and summarize).
 - [x] **Phase 6**: Alerting Engine (Slack webhooks, dedupe logic, `alerts_sent` tracking).
-- [ ] **Phase 7**: Scheduler (Cron job/APScheduler to run agent periodically).
+- [x] **Phase 7**: Scheduler (Cron job/APScheduler to run agent periodically).
 - [ ] **Phase 8**: Next.js Dashboard Backend (FastAPI endpoints for the UI).
 - [ ] **Phase 9**: Next.js Dashboard Frontend (React components, charts).
 - [ ] **Phase 10**: Email Alerts (SMTP integration, replacing/augmenting Slack).
