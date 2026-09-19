@@ -10,7 +10,7 @@ def check_amazon_price(asin: str) -> ScrapeResult:
     Fetches and parses an Amazon product page for price, title, and stock status.
     """
     url = f"https://www.amazon.com/dp/{asin}"
-    html = make_request_with_backoff(url, use_cloudscraper=False)
+    html = make_request_with_backoff(url, use_cloudscraper=True)
     
     soup = BeautifulSoup(html, "html.parser")
     
@@ -30,10 +30,12 @@ def check_amazon_price(asin: str) -> ScrapeResult:
         if "currently unavailable" in availability_text or "out of stock" in availability_text:
             in_stock = False
             
-    # Sometimes Amazon has a specific out of stock div
+    # Sometimes Amazon has a specific out of stock div, but check if it's really OOS and not just shipping restrictions
     out_of_stock_div = soup.find(id="outOfStock")
     if out_of_stock_div:
-        in_stock = False
+        oos_text = out_of_stock_div.get_text(strip=True).lower()
+        if "currently unavailable" in oos_text or "out of stock" in oos_text:
+            in_stock = False
 
     price = None
     currency = "USD"

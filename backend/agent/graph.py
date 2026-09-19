@@ -210,6 +210,7 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
                     # Send alert
                     res = send_slack_alert(msg)
                     if res and res.get("status") == "success":
+                        print(f"Slack webhook response: {res.get('status_code')} {res.get('text')}")
                         # Record alert
                         await tools_dict["record_alert_sent"].ainvoke({
                             "product_id": r["id"],
