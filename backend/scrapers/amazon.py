@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 
-from .types import ScrapeResult, ParseError
+from .types import ScrapeResult, ParseError, RegionRestrictedError
 from .http import make_request_with_backoff
 
 def check_amazon_price(asin: str) -> ScrapeResult:
@@ -29,6 +29,8 @@ def check_amazon_price(asin: str) -> ScrapeResult:
         availability_text = availability_element.get_text(strip=True).lower()
         if "currently unavailable" in availability_text or "out of stock" in availability_text:
             in_stock = False
+        elif "cannot be shipped" in availability_text:
+            raise RegionRestrictedError(f"Product cannot be shipped to the current region: {asin}")
             
     # Sometimes Amazon has a specific out of stock div, but check if it's really OOS and not just shipping restrictions
     out_of_stock_div = soup.find(id="outOfStock")
@@ -36,6 +38,8 @@ def check_amazon_price(asin: str) -> ScrapeResult:
         oos_text = out_of_stock_div.get_text(strip=True).lower()
         if "currently unavailable" in oos_text or "out of stock" in oos_text:
             in_stock = False
+        elif "cannot be shipped" in oos_text:
+            raise RegionRestrictedError(f"Product cannot be shipped to the current region: {asin}")
 
     price = None
     currency = "USD"
@@ -49,13 +53,41 @@ def check_amazon_price(asin: str) -> ScrapeResult:
         
     if price_element:
         price_text = price_element.get_text(strip=True)
-        # Assuming USD formatting e.g., "$19.99"
-        match = re.search(r"[\d,]+\.\d{2}", price_text)
-        if match:
-            try:
-                price = float(match.group().replace(",", ""))
-            except ValueError:
-                pass
+        if "TRY" in price_text or "₺" in price_text:
+            currency = "TRY"
+        elif "£" in price_text:
+            currency = "GBP"
+        elif "€" in price_text:
+            currency = "EUR"
+        elif "₹" in price_text:
+            currency = "INR"
+        else:
+            currency = "USD"
+            
+        # Amazon often breaks price into whole and fraction without a decimal in .a-offscreen
+        whole = price_element.parent.find(class_="a-price-whole")
+        fraction = price_element.parent.find(class_="a-price-fraction")
+        
+        if whole and fraction:
+            whole_text = re.sub(r'[^\d]', '', whole.get_text())
+            fraction_text = re.sub(r'[^\d]', '', fraction.get_text())
+            if whole_text and fraction_text:
+                price = float(f"{whole_text}.{fraction_text}")
+        
+        if price is None:
+            clean_price = re.sub(r'[^\d.,]', '', price_text)
+            if clean_price:
+                if ',' in clean_price and '.' in clean_price:
+                    if clean_price.rfind(',') > clean_price.rfind('.'):
+                        clean_price = clean_price.replace('.', '').replace(',', '.')
+                    else:
+                        clean_price = clean_price.replace(',', '')
+                elif ',' in clean_price:
+                    clean_price = clean_price.replace(',', '.')
+                try:
+                    price = float(clean_price)
+                except ValueError:
+                    pass
                 
     if in_stock and price is None:
         raise ParseError(f"Product appears in stock but price could not be parsed for ASIN {asin}")

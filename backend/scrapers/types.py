@@ -28,3 +28,7 @@ class ParseError(ScrapeError):
 class NotFoundError(ScrapeError):
     """Raised when the product page returns a 404."""
     pass
+
+class RegionRestrictedError(ScrapeError):
+    """Raised when a product is unavailable due to regional shipping restrictions."""
+    pass
