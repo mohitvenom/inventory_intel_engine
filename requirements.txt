@@ -16,8 +16,9 @@ cloudscraper         # phase 3
 mcp                  # phase 4
 
 # Phase 5: Agent Orchestrator
-# langgraph            # phase 5
-# openai               # phase 5
+langgraph==1.2.11            # phase 5
+langchain-openai==1.6.2      # phase 5
+langchain-mcp-adapters==0.3.2 # phase 5
 
 # Phase 7: Recurring Runs
 apscheduler          # phase 7

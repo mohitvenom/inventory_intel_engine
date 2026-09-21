@@ -63,9 +63,35 @@ def seed_data():
             notify_on_restock=True,
             notify_on_stockout=False,
             active=True
+        ),
+        Product(
+            name="The 48 Laws of Power",
+            source=SourceEnum.amazon,
+            external_id="0140280197",
+            region=None,
+            currency="TRY",
+            price_drop_threshold_pct=5.0,
+            notify_on_restock=True,
+            notify_on_stockout=True,
+            active=True
+        ),
+        Product(
+            name="Xbox Gift Card",
+            source=SourceEnum.amazon,
+            external_id="B00F4CEHNK",
+            region=None,
+            currency="TRY",
+            price_drop_threshold_pct=5.0,
+            notify_on_restock=True,
+            notify_on_stockout=True,
+            active=True
         )
     ]
-    db.add_all(products)
+    
+    for p in products:
+        exists = db.query(Product).filter(Product.external_id == p.external_id).first()
+        if not exists:
+            db.add(p)
     db.commit()
     print("Seed data inserted successfully.")
     
