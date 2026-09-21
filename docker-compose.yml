@@ -1,18 +1,56 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16
-    container_name: inventory-intel-postgres
+  db:
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: user
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: inventory_intel
+      POSTGRES_DB: inventory
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/inventory
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - ./docs/screenshots:/app/docs/screenshots
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: ["python", "-m", "backend.scheduler.run_scheduler"]
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/inventory
+    env_file:
+      - .env
+    depends_on:
+      - api
+    volumes:
+      - ./docs/screenshots:/app/docs/screenshots
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
 
 volumes:
   postgres_data:

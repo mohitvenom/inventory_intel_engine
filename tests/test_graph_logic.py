@@ -216,3 +216,69 @@ async def test_threshold_logic_null_price(mock_tools_dict):
         res = await graph.ainvoke({"run_id": 1, "product_results": []})
         
     assert res["product_results"][0]["price_dropped"] is False
+
+@pytest.mark.asyncio
+async def test_currency_fallback_logic_missing(mock_tools_dict):
+    # Mock check_amazon_price to return result without currency
+    mock_tools_dict["check_amazon_price"].return_val = json.dumps({"status": "success", "price": 100.0, "in_stock": True})
+    mock_tools_dict["get_price_history"].return_val = "[]"
+    mock_tools_dict["get_stock_history"].return_val = "[]"
+    
+    product = {
+        "id": 12, "name": "Test Product TR", "source": "amazon", "external_id": "B01",
+        "currency": "TRY",
+        "price_drop_threshold_pct": 5.0, "notify_on_restock": True, "notify_on_stockout": True
+    }
+    mock_tools_dict["list_watchlist"].return_val = json.dumps([product])
+    
+    from unittest.mock import patch, MagicMock
+    with patch("backend.agent.graph.ChatOpenAI") as MockLLM:
+        mock_llm_instance = MagicMock()
+        async def mock_ainvoke(*args, **kwargs):
+            mock_response = MagicMock()
+            mock_response.content = "Mock summary"
+            mock_response.response_metadata = {"model_name": "mock", "system_fingerprint": "mock", "token_usage": {}}
+            return mock_response
+        mock_llm_instance.ainvoke = mock_ainvoke
+        MockLLM.return_value = mock_llm_instance
+        
+        graph = create_inventory_graph(mock_tools_dict)
+        res = await graph.ainvoke({"run_id": 1, "product_results": []})
+        
+    # Assert record_price_check was called with currency "TRY"
+    calls = mock_tools_dict["record_price_check"].calls
+    assert len(calls) == 1
+    assert calls[0]["currency"] == "TRY"
+
+@pytest.mark.asyncio
+async def test_currency_fallback_logic_none(mock_tools_dict):
+    # Mock check_amazon_price to return result with currency as None
+    mock_tools_dict["check_amazon_price"].return_val = json.dumps({"status": "success", "price": 100.0, "in_stock": True, "currency": None})
+    mock_tools_dict["get_price_history"].return_val = "[]"
+    mock_tools_dict["get_stock_history"].return_val = "[]"
+    
+    product = {
+        "id": 12, "name": "Test Product TR", "source": "amazon", "external_id": "B01",
+        "currency": "TRY",
+        "price_drop_threshold_pct": 5.0, "notify_on_restock": True, "notify_on_stockout": True
+    }
+    mock_tools_dict["list_watchlist"].return_val = json.dumps([product])
+    
+    from unittest.mock import patch, MagicMock
+    with patch("backend.agent.graph.ChatOpenAI") as MockLLM:
+        mock_llm_instance = MagicMock()
+        async def mock_ainvoke(*args, **kwargs):
+            mock_response = MagicMock()
+            mock_response.content = "Mock summary"
+            mock_response.response_metadata = {"model_name": "mock", "system_fingerprint": "mock", "token_usage": {}}
+            return mock_response
+        mock_llm_instance.ainvoke = mock_ainvoke
+        MockLLM.return_value = mock_llm_instance
+        
+        graph = create_inventory_graph(mock_tools_dict)
+        res = await graph.ainvoke({"run_id": 1, "product_results": []})
+        
+    # Assert record_price_check was called with currency "TRY"
+    calls = mock_tools_dict["record_price_check"].calls
+    assert len(calls) == 1
+    assert calls[0]["currency"] == "TRY"
