@@ -22,8 +22,9 @@ graph TD
 - **MCP Tools Integration**: `langchain-mcp-adapters`
 - **Backend / MCP Server**: FastAPI, Python 3.12, Uvicorn
 - **Database**: PostgreSQL 16, SQLAlchemy 2.0, Alembic
-- **Scraping**: BeautifulSoup4, Cloudscraper, Playwright
+- **Scraping**: BeautifulSoup4, Cloudscraper
 - **Frontend**: Next.js 14, TailwindCSS, Recharts
+- **Testing & Tooling**: Playwright (for dashboard screenshot capture), Pytest
 - **Deployment**: Docker, Docker Compose
 
 ## Core Components
