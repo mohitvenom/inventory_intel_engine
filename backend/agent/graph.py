@@ -129,7 +129,7 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
                     await tools_dict["record_price_check"].ainvoke({
                         "product_id": p["id"], 
                         "price": float(curr_price),
-                        "currency": check_res.get("currency", "USD")
+                        "currency": check_res.get("currency") or p.get("currency", "USD")
                     })
                 if curr_stock is not None:
                     await tools_dict["record_stock_check"].ainvoke({
