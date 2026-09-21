@@ -14,8 +14,9 @@ async def async_run_agent(run_ctx=None):
     if run_ctx is None:
         run_ctx = {}
         
+    import sys
     server_params = StdioServerParameters(
-        command="python",
+        command=sys.executable,
         args=["-m", "backend.mcp_server.server"]
     )
     logger.info("Starting MCP Client Session...")

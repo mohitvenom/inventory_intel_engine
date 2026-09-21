@@ -10,4 +10,9 @@
 - [x] **Phase 8**: Dashboard
   - Read-only FastAPI endpoints for querying Postgres.
   - Next.js 14 frontend for visualizing watchlist, price/stock history charts, and agent run traces.
+- [x] **Phase 9**: Testing, evals, and hardening
+  - Added unit tests for graph logic threshold checking.
+  - Added synthetic LLM evals for summary generation.
+  - Implemented cross-run global rate-limiting to prevent server hammering.
+  - Dependency audit via `pip-audit`.
 - [ ] **Phase 10**: Email Alerts (SMTP integration, replacing/augmenting Slack).

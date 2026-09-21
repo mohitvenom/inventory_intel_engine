@@ -14,6 +14,22 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 ]
 
+import threading
+
+# Global state for cross-request rate limiting across the agent run
+_GLOBAL_SCRAPE_LOCK = threading.Lock()
+_LAST_SCRAPE_TIME = 0.0
+MIN_DELAY_BETWEEN_SCRAPES = 2.0
+
+def _enforce_global_delay():
+    global _LAST_SCRAPE_TIME
+    with _GLOBAL_SCRAPE_LOCK:
+        now = time.time()
+        elapsed = now - _LAST_SCRAPE_TIME
+        if elapsed < MIN_DELAY_BETWEEN_SCRAPES:
+            time.sleep(MIN_DELAY_BETWEEN_SCRAPES - elapsed)
+        _LAST_SCRAPE_TIME = time.time()
+
 def make_request_with_backoff(
     url: str, 
     use_cloudscraper: bool = False, 
@@ -32,6 +48,9 @@ def make_request_with_backoff(
 
     while attempt < max_attempts:
         attempt += 1
+        
+        # Enforce global delay across all requests to prevent hammering
+        _enforce_global_delay()
         
         # Random delay before request (0.5 to 2.0 seconds) to avoid hammering
         time.sleep(random.uniform(0.5, 2.0))
