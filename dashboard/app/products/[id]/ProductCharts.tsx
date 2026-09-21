@@ -24,7 +24,7 @@ export function ProductCharts({ priceHistory, stockHistory }: { priceHistory: an
                 />
                 <YAxis domain={['auto', 'auto']} />
                 <Tooltip 
-                  labelFormatter={(label) => new Date(label).toLocaleString()}
+                  labelFormatter={(label: any) => new Date(label as string | number).toLocaleString()}
                   formatter={(value: any) => [`${value}`, 'Price']}
                 />
                 <Line type="monotone" dataKey="price" stroke="#2563eb" activeDot={{ r: 8 }} />
@@ -51,7 +51,7 @@ export function ProductCharts({ priceHistory, stockHistory }: { priceHistory: an
                 />
                 <YAxis ticks={[0, 1]} tickFormatter={(tick) => tick === 1 ? 'In Stock' : 'Out'} domain={[0, 1]} />
                 <Tooltip 
-                  labelFormatter={(label) => new Date(label).toLocaleString()}
+                  labelFormatter={(label: any) => new Date(label as string | number).toLocaleString()}
                   formatter={(value: any) => [value ? 'In Stock' : 'Out of Stock', 'Status']}
                 />
                 <Line type="stepAfter" dataKey={(d) => d.in_stock ? 1 : 0} stroke="#16a34a" strokeWidth={2} />
