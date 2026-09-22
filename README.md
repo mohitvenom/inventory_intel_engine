@@ -10,6 +10,8 @@ graph TD
     B -->|Tools| C[MCP Server]
     C -->|Scrapes| D((Amazon))
     C -->|Scrapes| E((Ubuy))
+    C -->|Scrapes| J((Walmart))
+    C -->|Scrapes| K((eBay))
     C -->|Queries/Updates| F[(PostgreSQL)]
     B -->|Summarizes| G[LLM (OpenAI)]
     B -->|Logs| F
@@ -29,6 +31,7 @@ graph TD
 
 ## Core Components
 - **The MCP Server**: The scraper functions and database operations are encapsulated in a robust Model Context Protocol (MCP) server. This makes the tools highly reusable and protocol-verified, allowing any MCP-compatible client to invoke them.
+- **The Registry Pattern**: Marketplace support is extensible via a central registry that maps standard interfaces to marketplace-specific scrapers dynamically.
 - **The Agent**: A stateful LangGraph orchestrator that iterates over the watchlist, calls MCP tools, evaluates pricing logic, and utilizes an LLM to generate run summaries.
 - **The Dashboard**: A responsive Next.js web application that visualizes price history, stock charts, recent runs, and alerts.
 
@@ -63,7 +66,9 @@ You can run the entire stack (PostgreSQL, FastAPI Backend, Scheduler, and Next.j
 - **Intelligent Thresholds**: Alerts are only triggered if the price drops by a user-configured percentage, preventing noise from minor fluctuations.
 - **Multi-Currency Support**: Persists and reports the original currency of the product, with fallback logic for scraping anomalies.
 - **Robust Orchestration**: Built with LangGraph, enabling stateful tracking and clean error recovery for individual product failures without crashing the entire run.
+- **On-Demand Execution**: Supports manual "Run Now" and "Check Now" overrides directly from the UI, supplementing scheduled runs.
 
 ## Known Limitations
 - **Amazon CAPTCHA & Region Restrictions**: Under heavy testing traffic or certain region configurations, Amazon serves CAPTCHA or bot-challenge pages. These are successfully caught and reported as errors by the agent (they are *not* bypassed or handled seamlessly).
+- **Walmart PerimeterX & eBay Security Measure**: Walmart and eBay occasionally block scraping attempts with PerimeterX or Captcha challenges under load. The agent reports these as RateLimitedErrors rather than bypassing them.
 - **Ubuy JS-Rendered Prices**: Ubuy occasionally uses JavaScript rendering for pricing, which bypasses static scrapers. The agent falls back to detecting stock status without the price.

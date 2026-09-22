@@ -20,3 +20,11 @@ Thumbs.db
 
 # Test dumps
 *.html
+
+# Coverage reports
+.coverage
+coverage_report.txt
+htmlcov/
+
+# Secrets scans
+git_secrets.txt

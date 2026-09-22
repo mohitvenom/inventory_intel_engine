@@ -1,3 +1,6 @@
+"""
+A general DB inspection utility to check product details and test manual price checks.
+"""
 import sys
 import os
 import asyncio
