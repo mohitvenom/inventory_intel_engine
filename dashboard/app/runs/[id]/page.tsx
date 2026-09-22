@@ -3,7 +3,8 @@ import Link from "next/link";
 export const revalidate = 0;
 
 async function getRun(id: string) {
-  const res = await fetch(`http://127.0.0.1:8000/api/runs/${id}`, { cache: 'no-store' });
+  const apiUrl = process.env.API_URL || "http://127.0.0.1:8000/api";
+  const res = await fetch(`${apiUrl}/runs/${id}`, { cache: 'no-store' });
   if (!res.ok) {
     if (res.status === 404) return null;
     throw new Error("Failed to fetch run");

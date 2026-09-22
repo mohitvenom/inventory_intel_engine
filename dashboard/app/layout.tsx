@@ -1,46 +1,95 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import { Activity } from "lucide-react";
 
-const inter = Inter({ subsets: ["latin"] });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
+const plexMono = IBM_Plex_Mono({ weight: ['400', '500', '600', '700'], subsets: ["latin"], variable: "--font-plex" });
 
 export const metadata: Metadata = {
   title: "Inventory Intel Dashboard",
-  description: "Dashboard for Inventory Intel Agent",
+  description: "Operations dashboard for Inventory Intel Agent",
 };
 
-export default function RootLayout({
+export const revalidate = 0;
+
+async function getSystemState() {
+  const env = process.env;
+  const apiUrl = env.API_URL || "http://127.0.0.1:8000/api";
+  try {
+    const res = await fetch(`${apiUrl}/runs`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const runs = await res.json();
+    return runs.length > 0 ? runs[0] : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const latestRun = await getSystemState();
+  const intervalMinutes = parseInt(process.env.AGENT_RUN_INTERVAL_MINUTES || "30", 10);
+  
+  let nextRunTime = "Unknown";
+  if (latestRun && latestRun.started_at) {
+      const lastRunTime = new Date(latestRun.started_at).getTime();
+      const nextRunDate = new Date(lastRunTime + intervalMinutes * 60000);
+      nextRunTime = nextRunDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  let statusColor = "text-neutral";
+  if (latestRun?.status === "success") statusColor = "text-success";
+  else if (latestRun?.status === "failed") statusColor = "text-critical";
+  else if (latestRun?.status === "running") statusColor = "text-accent";
+
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
-        <nav className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <div className="flex-shrink-0 flex items-center font-bold text-xl text-blue-600">
-                  Inventory Intel
-                </div>
-                <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  <Link href="/" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                    Watchlist
-                  </Link>
-                  <Link href="/alerts" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                    Alerts
-                  </Link>
-                  <Link href="/runs" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                    Agent Runs
-                  </Link>
-                </div>
-              </div>
+    <html lang="en" className={`${spaceGrotesk.variable} ${plexMono.variable}`}>
+      <body className="bg-ink text-text-primary font-sans antialiased selection:bg-accent/30 min-h-screen flex flex-col">
+        {/* Slim Header Strip */}
+        <header className="bg-panel border-b border-hairline flex items-center justify-between px-4 py-2 text-xs sm:text-sm font-mono tracking-tight">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 font-semibold text-text-primary">
+              <Activity className={`w-4 h-4 ${statusColor}`} />
+              <span>INV_INTEL_AGENT</span>
             </div>
+            
+            <nav className="hidden sm:flex gap-4 text-text-secondary">
+              <Link href="/" className="hover:text-text-primary transition-colors">WATCHLIST</Link>
+              <Link href="/alerts" className="hover:text-text-primary transition-colors">ALERTS</Link>
+              <Link href="/runs" className="hover:text-text-primary transition-colors">RUNS</Link>
+            </nav>
           </div>
-        </nav>
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+
+          <div className="flex items-center gap-4 sm:gap-6 text-text-secondary">
+            {latestRun ? (
+              <>
+                <div className="flex gap-2">
+                  <span className="opacity-50 hidden sm:inline">LATEST_RUN:</span>
+                  <span className={statusColor}>
+                    {latestRun.status.toUpperCase()}
+                    {latestRun.finished_at && ` @ ${new Date(latestRun.finished_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="opacity-50 hidden sm:inline">NEXT_RUN:</span>
+                  <span>~{nextRunTime}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex gap-2">
+                <span className="opacity-50">SYSTEM_STATE:</span>
+                <span className="text-neutral">NO_DATA</span>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </body>

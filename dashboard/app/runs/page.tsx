@@ -3,63 +3,80 @@ import Link from "next/link";
 export const revalidate = 0;
 
 async function getRuns() {
-  const res = await fetch("http://127.0.0.1:8000/api/runs", { cache: 'no-store' });
-  if (!res.ok) throw new Error("Failed to fetch runs");
-  return res.json();
+  const env = process.env;
+  const apiUrl = env.API_URL || "http://127.0.0.1:8000/api";
+  try {
+    const res = await fetch(`${apiUrl}/runs`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    return [];
+  }
 }
 
 export default async function RunsPage() {
   const runs = await getRuns();
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Agent Runs</h1>
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul className="divide-y divide-gray-200">
-          {runs.map((run: any) => (
-            <li key={run.id}>
-              <Link href={`/runs/${run.id}`} className="block hover:bg-gray-50">
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-blue-600 truncate">Run #{run.id}</p>
-                    <div className="ml-2 flex-shrink-0 flex">
-                      <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${run.status === 'success' ? 'bg-green-100 text-green-800' : 
-                          run.status === 'failed' ? 'bg-red-100 text-red-800' : 
-                          run.status === 'running' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'}`}>
-                        {run.status}
-                      </p>
-                    </div>
+    <div className="space-y-6">
+      <h1 className="text-xl font-bold uppercase tracking-wider text-text-primary">Agent Runs</h1>
+      
+      <div className="border border-hairline bg-panel rounded-sm overflow-hidden">
+        <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-hairline bg-ink/50 text-xs font-mono text-text-secondary uppercase tracking-wider">
+          <div className="col-span-2">Run ID</div>
+          <div className="col-span-2">Status</div>
+          <div className="col-span-3">Timestamp</div>
+          <div className="col-span-5">Summary / Error</div>
+        </div>
+
+        <div className="divide-y divide-hairline">
+          {runs.map((run: any) => {
+            const isSuccess = run.status === 'success';
+            const isFailed = run.status === 'failed';
+            const isRunning = run.status === 'running';
+            
+            let statusColor = "text-neutral";
+            if (isSuccess) statusColor = "text-success";
+            else if (isFailed) statusColor = "text-critical";
+            else if (isRunning) statusColor = "text-accent";
+            
+            return (
+              <Link key={run.id} href={`/runs/${run.id}`} className="block hover:bg-ink/30 transition-colors">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 items-center text-sm">
+                  <div className="col-span-1 sm:col-span-2 font-mono text-text-primary">
+                    #{run.id}
                   </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex">
-                      <p className="flex items-center text-sm text-gray-500">
-                        Started: {new Date(run.started_at).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                      <p>Products checked: {run.products_checked || 0}</p>
-                    </div>
+                  
+                  <div className="col-span-1 sm:col-span-2 font-mono text-xs uppercase">
+                    <span className={statusColor}>
+                      {run.status}
+                    </span>
                   </div>
-                  {run.summary && (
-                    <div className="mt-2 text-sm text-gray-700">
-                      <p className="line-clamp-2">{run.summary}</p>
-                    </div>
-                  )}
-                  {run.error && (
-                    <div className="mt-2 text-sm text-red-600 font-semibold">
-                      Error: {run.error}
-                    </div>
-                  )}
+                  
+                  <div className="col-span-1 sm:col-span-3 font-mono text-text-secondary text-xs">
+                    {new Date(run.started_at).toLocaleString()}
+                  </div>
+                  
+                  <div className="col-span-1 sm:col-span-5 font-mono text-xs">
+                    {run.error ? (
+                      <span className="text-critical truncate block" title={run.error}>ERR: {run.error}</span>
+                    ) : (
+                      <span className="text-text-secondary truncate block" title={run.summary}>
+                        {run.summary || `Targets checked: ${run.products_checked || 0}`}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </Link>
-            </li>
-          ))}
+            );
+          })}
+          
           {runs.length === 0 && (
-            <li className="px-4 py-8 text-center text-gray-500">No agent runs recorded yet.</li>
+            <div className="p-8 text-center text-text-secondary font-mono text-sm">
+              NO_RUNS_RECORDED
+            </div>
           )}
-        </ul>
+        </div>
       </div>
     </div>
   );

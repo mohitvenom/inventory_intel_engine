@@ -4,41 +4,56 @@ import { ProductCharts } from "./ProductCharts";
 export const revalidate = 0;
 
 async function getProductAndHistory(id: string) {
-  const [productRes, priceRes, stockRes] = await Promise.all([
-    fetch(`http://127.0.0.1:8000/api/products`, { cache: 'no-store' }),
-    fetch(`http://127.0.0.1:8000/api/products/${id}/price-history`, { cache: 'no-store' }),
-    fetch(`http://127.0.0.1:8000/api/products/${id}/stock-history`, { cache: 'no-store' })
-  ]);
+  const env = process.env;
+  const apiUrl = env.API_URL || "http://127.0.0.1:8000/api";
   
-  if (!productRes.ok) throw new Error("Failed to fetch product");
-  
-  const products = await productRes.json();
-  const product = products.find((p: any) => p.id === parseInt(id));
-  
-  const priceHistory = priceRes.ok ? await priceRes.json() : [];
-  const stockHistory = stockRes.ok ? await stockRes.json() : [];
-  
-  return { product, priceHistory, stockHistory };
+  try {
+    const [productRes, priceRes, stockRes] = await Promise.all([
+      fetch(`${apiUrl}/products`, { cache: 'no-store' }),
+      fetch(`${apiUrl}/products/${id}/price-history`, { cache: 'no-store' }),
+      fetch(`${apiUrl}/products/${id}/stock-history`, { cache: 'no-store' })
+    ]);
+    
+    if (!productRes.ok) throw new Error("Failed to fetch product");
+    
+    const products = await productRes.json();
+    const product = products.find((p: any) => p.id === parseInt(id));
+    
+    const priceHistory = priceRes.ok ? await priceRes.json() : [];
+    const stockHistory = stockRes.ok ? await stockRes.json() : [];
+    
+    return { product, priceHistory, stockHistory };
+  } catch (e) {
+    return { product: null, priceHistory: [], stockHistory: [] };
+  }
 }
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const { product, priceHistory, stockHistory } = await getProductAndHistory(params.id);
 
-  if (!product) return <div>Product not found</div>;
+  if (!product) {
+    return (
+      <div className="p-8 text-center text-text-secondary font-mono text-sm">
+        PRODUCT_NOT_FOUND
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="mb-4">
-        <Link href="/" className="text-blue-600 hover:underline">
-          &larr; Back to Watchlist
+        <Link href="/" className="text-text-secondary hover:text-text-primary text-xs font-mono uppercase tracking-wider transition-colors">
+          &larr; BACK_TO_WATCHLIST
         </Link>
       </div>
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">{product.name}</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Source: {product.source} {product.region ? `(${product.region})` : ""}
-          </p>
+      
+      <div className="border border-hairline bg-panel p-4 sm:p-6 rounded-sm">
+        <h1 className="text-xl font-bold text-text-primary mb-2">{product.name}</h1>
+        <div className="flex flex-wrap gap-4 text-xs font-mono text-text-secondary uppercase">
+          <span>ID: {product.id}</span>
+          <span>SRC: {product.source}</span>
+          {product.region && <span>REG: {product.region}</span>}
+          {product.price_drop_threshold_pct > 0 && <span>THR: {product.price_drop_threshold_pct}%</span>}
         </div>
       </div>
       

@@ -5,56 +5,85 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export function ProductCharts({ priceHistory, stockHistory }: { priceHistory: any[], stockHistory: any[] }) {
   const hasPrices = priceHistory.some(p => p.price !== null);
   
+  // Custom tooltip styles for the dark theme
+  const customTooltipStyle = {
+    backgroundColor: '#171D2B', // panel
+    border: '1px solid #2A3244', // hairline
+    color: '#E7E5DE', // text-primary
+    fontFamily: 'var(--font-plex), monospace',
+    fontSize: '12px'
+  };
+
   return (
-    <div className="space-y-8 mt-6">
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Price History</h3>
+    <div className="space-y-6 mt-6">
+      <div className="border border-hairline bg-panel p-4 sm:p-6 rounded-sm">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary mb-6">Price History</h3>
         {!hasPrices ? (
-          <div className="flex items-center justify-center h-64 bg-gray-50 rounded border border-dashed border-gray-300">
-            <p className="text-gray-500">Price data is unavailable for this product.</p>
+          <div className="flex items-center justify-center h-64 bg-ink/30 border border-dashed border-hairline rounded-sm">
+            <p className="text-neutral font-mono text-xs uppercase">PRICE_DATA_UNAVAILABLE</p>
           </div>
         ) : (
-          <div className="h-64">
+          <div className="h-64 font-mono text-xs">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={priceHistory}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2A3244" vertical={false} />
                 <XAxis 
                   dataKey="timestamp" 
-                  tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
+                  stroke="#8A93A6"
+                  tick={{ fill: '#8A93A6' }}
+                  tickFormatter={(tick) => new Date(tick).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  tickMargin={10}
                 />
-                <YAxis domain={['auto', 'auto']} />
+                <YAxis 
+                  domain={['auto', 'auto']} 
+                  stroke="#8A93A6"
+                  tick={{ fill: '#8A93A6' }}
+                  tickMargin={10}
+                />
                 <Tooltip 
+                  contentStyle={customTooltipStyle}
                   labelFormatter={(label: any) => new Date(label as string | number).toLocaleString()}
-                  formatter={(value: any) => [`${value}`, 'Price']}
+                  formatter={(value: any) => [`${value}`, 'PRICE']}
                 />
-                <Line type="monotone" dataKey="price" stroke="#2563eb" activeDot={{ r: 8 }} />
+                <Line type="stepAfter" dataKey="price" stroke="#E8A33D" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#E8A33D', stroke: '#171D2B' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         )}
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Stock History</h3>
+      <div className="border border-hairline bg-panel p-4 sm:p-6 rounded-sm">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary mb-6">Stock History</h3>
         {stockHistory.length === 0 ? (
-          <div className="flex items-center justify-center h-64 bg-gray-50 rounded border border-dashed border-gray-300">
-            <p className="text-gray-500">No stock data recorded yet.</p>
+          <div className="flex items-center justify-center h-64 bg-ink/30 border border-dashed border-hairline rounded-sm">
+            <p className="text-neutral font-mono text-xs uppercase">NO_STOCK_DATA_RECORDED</p>
           </div>
         ) : (
-          <div className="h-64">
+          <div className="h-64 font-mono text-xs">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={stockHistory}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2A3244" vertical={false} />
                 <XAxis 
                   dataKey="timestamp"
-                  tickFormatter={(tick) => new Date(tick).toLocaleDateString()}
+                  stroke="#8A93A6"
+                  tick={{ fill: '#8A93A6' }}
+                  tickFormatter={(tick) => new Date(tick).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  tickMargin={10}
                 />
-                <YAxis ticks={[0, 1]} tickFormatter={(tick) => tick === 1 ? 'In Stock' : 'Out'} domain={[0, 1]} />
+                <YAxis 
+                  ticks={[0, 1]} 
+                  tickFormatter={(tick) => tick === 1 ? 'IN_STOCK' : 'OUT_OF_STOCK'} 
+                  domain={[0, 1]} 
+                  stroke="#8A93A6"
+                  tick={{ fill: '#8A93A6' }}
+                  tickMargin={10}
+                />
                 <Tooltip 
+                  contentStyle={customTooltipStyle}
                   labelFormatter={(label: any) => new Date(label as string | number).toLocaleString()}
-                  formatter={(value: any) => [value ? 'In Stock' : 'Out of Stock', 'Status']}
+                  formatter={(value: any) => [value ? 'IN_STOCK' : 'OUT_OF_STOCK', 'STATUS']}
                 />
-                <Line type="stepAfter" dataKey={(d) => d.in_stock ? 1 : 0} stroke="#16a34a" strokeWidth={2} />
+                <Line type="stepAfter" dataKey={(d) => d.in_stock ? 1 : 0} stroke="#3FAE8C" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

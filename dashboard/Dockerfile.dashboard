@@ -11,6 +11,12 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Set environment variables for the build so Next.js embeds the correct URLs
+ARG API_URL=http://api:8000/api
+ENV API_URL=${API_URL}
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000/api
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 # Build the Next.js application
 RUN npm run build
 

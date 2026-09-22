@@ -5,7 +5,7 @@ async def run():
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
-        page.set_viewport_size({"width": 1536, "height": 730})
+        await page.set_viewport_size({"width": 1536, "height": 730})
         
         await page.goto("http://localhost:3000/")
         await page.wait_for_timeout(2000)
