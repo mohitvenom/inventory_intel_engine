@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LocalTime } from "../LocalTime";
 
 export const revalidate = 0;
 
@@ -52,7 +53,7 @@ export default async function AlertsPage() {
             return (
               <div key={alert.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 items-center text-sm hover:bg-ink/30 transition-colors">
                 <div className="col-span-1 sm:col-span-3 font-mono text-text-secondary text-xs">
-                  {new Date(alert.timestamp).toLocaleString()}
+                  <LocalTime timestamp={alert.timestamp} format="datetime" />
                 </div>
                 
                 <div className="col-span-1 sm:col-span-2 font-mono text-xs uppercase">

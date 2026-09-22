@@ -28,8 +28,9 @@ async function getProductAndHistory(id: string) {
   }
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const { product, priceHistory, stockHistory } = await getProductAndHistory(params.id);
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const { product, priceHistory, stockHistory } = await getProductAndHistory(id);
 
   if (!product) {
     return (

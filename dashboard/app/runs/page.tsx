@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LocalTime } from "../LocalTime";
 
 export const revalidate = 0;
 
@@ -54,7 +55,7 @@ export default async function RunsPage() {
                   </div>
                   
                   <div className="col-span-1 sm:col-span-3 font-mono text-text-secondary text-xs">
-                    {new Date(run.started_at).toLocaleString()}
+                    <LocalTime timestamp={run.started_at} format="datetime" />
                   </div>
                   
                   <div className="col-span-1 sm:col-span-5 font-mono text-xs">

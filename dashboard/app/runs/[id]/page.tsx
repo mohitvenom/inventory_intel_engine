@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LocalTime } from "../../LocalTime";
 
 export const revalidate = 0;
 
@@ -12,8 +13,9 @@ async function getRun(id: string) {
   return res.json();
 }
 
-export default async function RunDetailPage({ params }: { params: { id: string } }) {
-  const run = await getRun(params.id);
+export default async function RunDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const run = await getRun(id);
 
   if (!run) return <div>Run not found</div>;
 
@@ -29,7 +31,7 @@ export default async function RunDetailPage({ params }: { params: { id: string }
         <div className="px-4 py-5 sm:px-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">Agent Run #{run.id}</h3>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Started: {new Date(run.started_at).toLocaleString()} | Status: {run.status}
+            Started: <LocalTime timestamp={run.started_at} format="datetime" /> | Status: {run.status}
           </p>
         </div>
         <div className="border-t border-gray-200 px-4 py-5 sm:px-6">

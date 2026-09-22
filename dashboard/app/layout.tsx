@@ -3,6 +3,7 @@ import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { Activity } from "lucide-react";
+import { LocalTime } from "./LocalTime";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 const plexMono = IBM_Plex_Mono({ weight: ['400', '500', '600', '700'], subsets: ["latin"], variable: "--font-plex" });
@@ -35,11 +36,10 @@ export default async function RootLayout({
   const latestRun = await getSystemState();
   const intervalMinutes = parseInt(process.env.AGENT_RUN_INTERVAL_MINUTES || "30", 10);
   
-  let nextRunTime = "Unknown";
+  let nextRunTimestamp: string | number = "Unknown";
   if (latestRun && latestRun.started_at) {
       const lastRunTime = new Date(latestRun.started_at).getTime();
-      const nextRunDate = new Date(lastRunTime + intervalMinutes * 60000);
-      nextRunTime = nextRunDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      nextRunTimestamp = lastRunTime + intervalMinutes * 60000;
   }
 
   let statusColor = "text-neutral";
@@ -68,16 +68,18 @@ export default async function RootLayout({
           <div className="flex items-center gap-4 sm:gap-6 text-text-secondary">
             {latestRun ? (
               <>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <span className="opacity-50 hidden sm:inline">LATEST_RUN:</span>
                   <span className={statusColor}>
                     {latestRun.status.toUpperCase()}
-                    {latestRun.finished_at && ` @ ${new Date(latestRun.finished_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                    {latestRun.finished_at && (
+                      <> @ <LocalTime timestamp={latestRun.finished_at} format="time" /></>
+                    )}
                   </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <span className="opacity-50 hidden sm:inline">NEXT_RUN:</span>
-                  <span>~{nextRunTime}</span>
+                  <span>~<LocalTime timestamp={nextRunTimestamp} format="time" /></span>
                 </div>
               </>
             ) : (
