@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import { LocalTime } from "./LocalTime";
+import { RunNowButton } from "./RunNowButton";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 const plexMono = IBM_Plex_Mono({ weight: ['400', '500', '600', '700'], subsets: ["latin"], variable: "--font-plex" });
@@ -81,6 +82,7 @@ export default async function RootLayout({
                   <span className="opacity-50 hidden sm:inline">NEXT_RUN:</span>
                   <span>~<LocalTime timestamp={nextRunTimestamp} format="time" /></span>
                 </div>
+                <RunNowButton />
               </>
             ) : (
               <div className="flex gap-2">

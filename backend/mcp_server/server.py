@@ -9,6 +9,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 
 from backend.scrapers.amazon import check_amazon_price as scrape_amazon
 from backend.scrapers.ubuy import check_ubuy_stock as scrape_ubuy
+from backend.scrapers.walmart import check_walmart_price as scrape_walmart
+from backend.scrapers.ebay import check_ebay_price as scrape_ebay
 from backend.scrapers.types import ScrapeError
 from backend.db.session import SessionLocal
 from backend.db.models import Product, PriceHistory, StockHistory, AgentRun, RunStatusEnum, AlertSent, AlertTypeEnum
@@ -58,6 +60,62 @@ def check_ubuy_stock(product_url: str, region: str) -> dict:
     """
     try:
         res = scrape_ubuy(product_url, region)
+        return {
+            "status": "success",
+            "title": res.title,
+            "price": res.price,
+            "currency": res.currency,
+            "in_stock": res.in_stock,
+            "checked_at": res.checked_at.isoformat()
+        }
+    except ScrapeError as e:
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "message": str(e)
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_type": "UnknownError",
+            "message": str(e)
+        }
+
+@mcp.tool()
+def check_walmart_price(external_id: str) -> dict:
+    """
+    Scrapes the live Walmart product page for the given external ID.
+    """
+    try:
+        res = scrape_walmart(external_id)
+        return {
+            "status": "success",
+            "title": res.title,
+            "price": res.price,
+            "currency": res.currency,
+            "in_stock": res.in_stock,
+            "checked_at": res.checked_at.isoformat()
+        }
+    except ScrapeError as e:
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "message": str(e)
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_type": "UnknownError",
+            "message": str(e)
+        }
+
+@mcp.tool()
+def check_ebay_price(external_id: str) -> dict:
+    """
+    Scrapes the live eBay product page for the given external ID.
+    """
+    try:
+        res = scrape_ebay(external_id)
         return {
             "status": "success",
             "title": res.title,

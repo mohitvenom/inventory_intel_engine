@@ -31,17 +31,20 @@ async def async_run_agent(run_ctx=None):
             tools_dict = {t.name: t for t in tools}
             logger.info(f"Tools available: {list(tools_dict.keys())}")
             
-            logger.info("Starting run via MCP to obtain run_id...")
-            start_tool = tools_dict["start_agent_run"]
-            start_res = await start_tool.ainvoke({})
-            start_data = parse_mcp_result(start_res)
-            if isinstance(start_data, list) and len(start_data) > 0:
-                start_data = start_data[0]
-            run_id = start_data.get("run_id")
-            
-            if run_id:
-                run_ctx["run_id"] = run_id
-                logger.info(f"Captured run_id: {run_id}")
+            run_id = run_ctx.get("run_id")
+            if not run_id:
+                logger.info("Starting run via MCP to obtain run_id...")
+                start_tool = tools_dict["start_agent_run"]
+                start_res = await start_tool.ainvoke({})
+                start_data = parse_mcp_result(start_res)
+                if isinstance(start_data, list) and len(start_data) > 0:
+                    start_data = start_data[0]
+                run_id = start_data.get("run_id")
+                if run_id:
+                    run_ctx["run_id"] = run_id
+                    logger.info(f"Captured run_id: {run_id}")
+            else:
+                logger.info(f"Using provided run_id: {run_id}")
             
             logger.info("Compiling LangGraph Agent...")
             graph = create_inventory_graph(tools_dict)

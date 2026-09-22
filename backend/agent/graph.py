@@ -72,10 +72,17 @@ def create_inventory_graph(tools_dict: Dict[str, Any]):
         
         # 1. Fetch current price/stock
         try:
-            if source == "amazon":
-                check_res = await tools_dict["check_amazon_price"].ainvoke({"asin": ext_id})
-            elif source == "ubuy":
-                check_res = await tools_dict["check_ubuy_stock"].ainvoke({"product_url": ext_id, "region": p.get("region")})
+            from backend.scrapers.registry import MARKETPLACES
+            marketplace = MARKETPLACES.get(source)
+            
+            if marketplace:
+                mcp_tool_name = marketplace["mcp_tool_name"]
+                args = marketplace["mcp_args_mapper"](p)
+                
+                if mcp_tool_name not in tools_dict:
+                    check_res = {"status": "error", "message": f"Tool {mcp_tool_name} not available in MCP server"}
+                else:
+                    check_res = await tools_dict[mcp_tool_name].ainvoke(args)
             else:
                 check_res = {"status": "error", "message": f"Unknown source {source}"}
             

@@ -5,10 +5,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from .session import Base
 
-class SourceEnum(str, enum.Enum):
-    amazon = 'amazon'
-    ubuy = 'ubuy'
-
 class AlertTypeEnum(str, enum.Enum):
     price_drop = 'price_drop'
     restock = 'restock'
@@ -28,7 +24,7 @@ class Product(Base):
     __tablename__ = 'products'
     
     id = Column(Integer, primary_key=True, index=True)
-    source = Column(Enum(SourceEnum), nullable=False)
+    source = Column(String, nullable=False)
     external_id = Column(String, nullable=False, index=True)
     region = Column(String, nullable=True)
     name = Column(String, nullable=False)

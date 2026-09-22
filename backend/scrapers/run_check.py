@@ -5,7 +5,7 @@ import argparse
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from backend.db.session import SessionLocal
-from backend.db.models import Product, SourceEnum
+from backend.db.models import Product
 from backend.scrapers.amazon import check_amazon_price
 from backend.scrapers.ubuy import check_ubuy_stock
 from backend.scrapers.types import ScrapeError
@@ -26,10 +26,10 @@ def main():
     print(f"Found product: {product.name} (Source: {product.source})")
     
     try:
-        if product.source == SourceEnum.amazon:
+        if product.source == "amazon":
             print(f"Running Amazon scraper for ASIN: {product.external_id}...")
             result = check_amazon_price(product.external_id)
-        elif product.source == SourceEnum.ubuy:
+        elif product.source == "ubuy":
             print(f"Running Ubuy scraper for URL: {product.external_id}...")
             result = check_ubuy_stock(product.external_id, product.region)
         else:

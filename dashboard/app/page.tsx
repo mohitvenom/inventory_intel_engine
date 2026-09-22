@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { AddProductModal } from "./AddProductModal";
+import { ProductActions } from "./ProductActions";
 
 export const revalidate = 0;
 
@@ -15,13 +17,27 @@ async function getProducts() {
   }
 }
 
+async function getMarketplaces() {
+  const env = process.env;
+  const apiUrl = env.API_URL || "http://127.0.0.1:8000/api";
+  try {
+    const res = await fetch(`${apiUrl}/marketplaces`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    return [];
+  }
+}
+
 export default async function WatchlistPage() {
-  const products = await getProducts();
+  const [productsRaw, marketplaces] = await Promise.all([getProducts(), getMarketplaces()]);
+  const products = productsRaw.filter((p: any) => p.active !== false);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold uppercase tracking-wider text-text-primary">Watchlist</h1>
+        <AddProductModal marketplaces={marketplaces} />
       </div>
       
       <div className="border border-hairline bg-panel rounded-sm overflow-hidden">
@@ -80,23 +96,26 @@ export default async function WatchlistPage() {
                     )}
                   </div>
 
-                  {/* Triggers */}
-                  <div className="col-span-1 sm:col-span-4 text-left sm:text-right font-mono text-xs text-text-secondary flex flex-wrap sm:justify-end gap-2 mt-2 sm:mt-0">
-                    {product.price_drop_threshold_pct > 0 && (
-                      <span className="bg-ink px-2 py-1 border border-hairline rounded-sm">
-                        ▼ {product.price_drop_threshold_pct}%
-                      </span>
-                    )}
-                    {product.notify_on_restock && (
-                      <span className="bg-ink px-2 py-1 border border-hairline rounded-sm text-success">
-                        Restock
-                      </span>
-                    )}
-                    {product.notify_on_stockout && (
-                      <span className="bg-ink px-2 py-1 border border-hairline rounded-sm text-critical">
-                        Stockout
-                      </span>
-                    )}
+                  {/* Triggers & Actions */}
+                  <div className="col-span-1 sm:col-span-4 flex flex-col justify-between sm:items-end gap-2 mt-2 sm:mt-0">
+                    <div className="flex flex-wrap sm:justify-end gap-2 font-mono text-xs text-text-secondary">
+                      {product.price_drop_threshold_pct > 0 && (
+                        <span className="bg-ink px-2 py-1 border border-hairline rounded-sm">
+                          ▼ {product.price_drop_threshold_pct}%
+                        </span>
+                      )}
+                      {product.notify_on_restock && (
+                        <span className="bg-ink px-2 py-1 border border-hairline rounded-sm text-success">
+                          Restock
+                        </span>
+                      )}
+                      {product.notify_on_stockout && (
+                        <span className="bg-ink px-2 py-1 border border-hairline rounded-sm text-critical">
+                          Stockout
+                        </span>
+                      )}
+                    </div>
+                    <ProductActions product={product} />
                   </div>
 
                 </div>
