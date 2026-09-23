@@ -10,6 +10,13 @@ def check_ubuy_stock(product_url: str, region: str) -> ScrapeResult:
     Fetches and parses a Ubuy product page for stock status and optional price.
     Uses cloudscraper to bypass potential Cloudflare protections.
     """
+    import urllib.parse
+    domain = urllib.parse.urlparse(product_url).netloc.lower()
+    domain_parts = domain.split('.')
+    if region.lower() not in domain_parts:
+        if not (region.lower() == 'us' and domain.endswith('ubuy.com')):
+            raise ParseError(f"Region mismatch: URL domain '{domain}' does not match requested region '{region}'")
+
     html = make_request_with_backoff(product_url, use_cloudscraper=True)
     soup = BeautifulSoup(html, "html.parser")
     
