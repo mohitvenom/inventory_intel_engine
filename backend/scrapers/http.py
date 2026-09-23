@@ -33,7 +33,8 @@ def _enforce_global_delay():
 def make_request_with_backoff(
     url: str, 
     use_cloudscraper: bool = False, 
-    max_attempts: int = 3
+    max_attempts: int = 3,
+    session: Optional[requests.Session] = None
 ) -> str:
     """
     Makes an HTTP GET request with exponential backoff, user-agent rotation,
@@ -41,10 +42,11 @@ def make_request_with_backoff(
     """
     attempt = 0
     
-    if use_cloudscraper:
-        session = cloudscraper.create_scraper()
-    else:
-        session = requests.Session()
+    if session is None:
+        if use_cloudscraper:
+            session = cloudscraper.create_scraper()
+        else:
+            session = requests.Session()
 
     while attempt < max_attempts:
         attempt += 1
@@ -57,7 +59,11 @@ def make_request_with_backoff(
         
         headers = {
             "User-Agent": random.choice(USER_AGENTS),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1"
         }
         
         try:

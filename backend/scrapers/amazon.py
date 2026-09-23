@@ -4,14 +4,49 @@ from bs4 import BeautifulSoup
 
 from .types import ScrapeResult, ParseError, RegionRestrictedError
 from .http import make_request_with_backoff
+import requests
 
-def check_amazon_price(asin: str) -> ScrapeResult:
+def check_amazon_price(asin: str, region: str = "com") -> ScrapeResult:
     """
     Fetches and parses an Amazon product page for price, title, and stock status.
+    Uses the specified region (default 'com') to build the correct domain (e.g., 'in', 'co.uk').
+    For 'com' region, enforces zip code 41018 (Erlanger, KY) to get accurate US pricing/stock.
     """
-    url = f"https://www.amazon.com/dp/{asin}"
-    html = make_request_with_backoff(url, use_cloudscraper=True)
+    domain = f"amazon.{region}" if region else "amazon.com"
+    url = f"https://www.{domain}/dp/{asin}"
     
+    session = requests.Session()
+    if domain == "amazon.com":
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept-Language": "en-US,en;q=0.9",
+            }
+            # 1. Get initial session cookies
+            session.get("https://www.amazon.com/", headers=headers, timeout=10)
+            # 2. Set zip code to 41018
+            post_headers = headers.copy()
+            post_headers["Content-Type"] = "application/x-www-form-urlencoded"
+            post_headers["X-Requested-With"] = "XMLHttpRequest"
+            data = {
+                "locationType": "LOCATION_INPUT",
+                "zipCode": "41018",
+                "storeContext": "generic",
+                "deviceType": "web",
+                "pageType": "Search",
+                "actionSource": "glow"
+            }
+            session.post("https://www.amazon.com/gp/delivery/ajax/address-change.html", headers=post_headers, data=data, timeout=10)
+        except Exception:
+            pass
+            
+    html = make_request_with_backoff(url, use_cloudscraper=False, session=session)
+    
+    # Check for CAPTCHA block
+    if "validateCaptcha" in html or "api-services-support@amazon.com" in html:
+        from .types import RateLimitedError
+        raise RateLimitedError("Amazon blocked the request (Captcha).")
+        
     soup = BeautifulSoup(html, "html.parser")
     
     # 1. Title
@@ -95,7 +130,7 @@ def check_amazon_price(asin: str) -> ScrapeResult:
     return ScrapeResult(
         source="amazon",
         external_id=asin,
-        region=None,
+        region=region,
         price=price,
         currency=currency,
         in_stock=in_stock,

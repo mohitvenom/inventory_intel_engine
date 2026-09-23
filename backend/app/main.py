@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api import router as api_router
-
+from backend.app.debug_routes import router as debug_router
 app = FastAPI(title="Inventory Intel Agent")
 
 app.add_middleware(
@@ -13,7 +13,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
-
+app.include_router(debug_router)
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
