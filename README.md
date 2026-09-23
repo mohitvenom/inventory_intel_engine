@@ -13,7 +13,7 @@ graph TD
     C -->|Scrapes| J((Walmart))
     C -->|Scrapes| K((eBay))
     C -->|Queries/Updates| F[(PostgreSQL)]
-    B -->|Summarizes| G[LLM (OpenAI)]
+    B -->|Summarizes| G["LLM (OpenAI)"]
     B -->|Logs| F
     H[Next.js Dashboard] -->|Reads| I(FastAPI Read-only)
     I -->|Queries| F
