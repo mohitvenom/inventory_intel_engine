@@ -8,7 +8,7 @@ MARKETPLACES = {
         "scraper_function": check_amazon_price,
         "mcp_tool_name": "check_amazon_price",
         "display_name": "Amazon",
-        "mcp_args_mapper": lambda p: {"asin": p.get("external_id")}
+        "mcp_args_mapper": lambda p: {"asin": p.get("external_id"), "region": p.get("region")}
     },
     "ubuy": {
         "scraper_function": check_ubuy_stock,

@@ -22,14 +22,14 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("inventory-intel-agent")
 
 @mcp.tool()
-def check_amazon_price(asin: str) -> dict:
+def check_amazon_price(asin: str, region: str = "com") -> dict:
     """
     Scrapes the live Amazon product page for the given ASIN.
     Returns the parsed title, price, currency, and stock status.
     If parsing fails or rate limits are hit, returns a structured error dictionary.
     """
     try:
-        res = scrape_amazon(asin)
+        res = scrape_amazon(asin, region)
         return {
             "status": "success",
             "title": res.title,
