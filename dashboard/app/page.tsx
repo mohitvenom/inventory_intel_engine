@@ -62,8 +62,13 @@ export default async function WatchlistPage() {
                   
                   {/* Product Info */}
                   <div className="col-span-1 sm:col-span-4 space-y-1">
-                    <div className="font-medium text-text-primary truncate" title={product.name}>
-                      {product.name}
+                    <div className="font-medium text-text-primary truncate flex items-center gap-2" title={product.name}>
+                      <span>{product.name}</span>
+                      {product.url && (
+                        <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-neutral hover:text-text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
+                          <ExternalLink className="h-3 w-3 inline-block" />
+                        </a>
+                      )}
                     </div>
                     <div className="text-xs font-mono text-text-secondary uppercase">
                       {product.source} {product.region && `[${product.region}]`}

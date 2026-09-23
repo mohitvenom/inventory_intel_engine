@@ -70,6 +70,19 @@ class ProductUpdate(BaseModel):
 def get_marketplaces():
     return [{"id": k, "display_name": v["display_name"]} for k, v in MARKETPLACES.items()]
 
+# --- Helpers ---
+def get_product_url(source: str, external_id: str, region: Optional[str] = None) -> str:
+    if source == "amazon":
+        domain = f"amazon.{region}" if region else "amazon.com"
+        return f"https://www.{domain}/dp/{external_id}"
+    elif source == "ebay":
+        return f"https://www.ebay.com/itm/{external_id}"
+    elif source == "walmart":
+        return f"https://www.walmart.com/ip/{external_id}"
+    elif source == "ubuy":
+        return external_id
+    return external_id
+
 # --- Products ---
 @router.get("/api/products")
 def get_products(db: Session = Depends(get_db)):
@@ -85,6 +98,7 @@ def get_products(db: Session = Depends(get_db)):
             "source": p.source,
             "external_id": p.external_id,
             "region": p.region,
+            "url": get_product_url(p.source, p.external_id, p.region),
             "currency": p.currency,
             "price_drop_threshold_pct": p.price_drop_threshold_pct,
             "notify_on_restock": p.notify_on_restock,
