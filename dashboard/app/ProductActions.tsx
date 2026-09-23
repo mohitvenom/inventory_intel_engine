@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Settings, Trash2, Check, X } from "lucide-react";
+import { Play, Settings, Trash2, Check, X, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function ProductActions({ product }: { product: any }) {
@@ -75,6 +75,19 @@ export function ProductActions({ product }: { product: any }) {
         <span className="text-[10px] text-success bg-success/10 px-1.5 py-0.5 border border-success/20 absolute right-full mr-2 whitespace-nowrap rounded-sm flex items-center gap-1">
           <Check className="w-3 h-3" /> {success}
         </span>
+      )}
+      
+      {product.url && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            window.open(product.url, '_blank');
+          }}
+          title="Open in Store"
+          className="p-1.5 border border-hairline text-text-secondary hover:text-accent hover:border-accent hover:bg-surface transition-colors rounded-sm"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+        </button>
       )}
       
       <button 
